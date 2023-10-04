@@ -281,8 +281,9 @@ def urban_radiance_field_depth_loss(
     line_of_sight_loss_empty = (line_of_sight_loss_empty_mask * weights**2).sum(-2)
     line_of_sight_loss = line_of_sight_loss_near + line_of_sight_loss_empty
 
-    loss = (expected_depth_loss + line_of_sight_loss) * depth_mask
-    return torch.mean(loss)
+    loss = (expected_depth_loss + line_of_sight_loss)# * depth_mask
+    #return torch.mean(loss)
+    return torch.mean(loss[depth_mask])
 
 
 def depth_loss(
