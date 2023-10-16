@@ -94,9 +94,22 @@ class PixelSampler:
             mask: mask of possible pixels in an image to sample from.
         """
         if isinstance(mask, torch.Tensor):
-            nonzero_indices = torch.nonzero(mask[..., 0], as_tuple=False)
-            chosen_indices = random.sample(range(len(nonzero_indices)), k=batch_size)
-            indices = nonzero_indices[chosen_indices]
+            # nonzero_indices = torch.nonzero(mask[..., 0], as_tuple=False)
+            # chosen_indices = random.sample(range(len(nonzero_indices)), k=batch_size)
+            # indices = nonzero_indices[chosen_indices]
+
+            
+            sampled_indices = []
+            while sum([len(i) for i in sampled_indices]) < batch_size:
+                indices = torch.floor(
+                    torch.rand((batch_size*2, 3), device=device)
+                    * torch.tensor([num_images, image_height, image_width], device=device)
+                ).long()
+                keep_mask = mask[indices[:, 0], indices[:, 1], indices[:, 2]].squeeze(-1)
+                indices = indices[keep_mask]
+                sampled_indices.append(indices)
+
+            indices = torch.cat(sampled_indices)[:batch_size]
         else:
             indices = torch.floor(
                 torch.rand((batch_size, 3), device=device)
@@ -405,6 +418,15 @@ class PairPixelSampler(PixelSampler):  # pylint: disable=too-few-public-methods
             nonzero_indices = torch.nonzero(m[:, 0], as_tuple=False).to(device)
             chosen_indices = random.sample(range(len(nonzero_indices)), k=rays_to_sample)
             indices = nonzero_indices[chosen_indices]
+            
+            # #test memory consumption of nonzero and erode_mask
+            # rays_to_sample = self.rays_to_sample
+            # s = (rays_to_sample, 1)
+            # ns = torch.randint(0, num_images, s, dtype=torch.long, device=device)
+            # hs = torch.randint(self.radius, image_height - self.radius, s, dtype=torch.long, device=device)
+            # ws = torch.randint(self.radius, image_width - self.radius, s, dtype=torch.long, device=device)
+            # indices = torch.concat((ns, hs, ws), dim=1)
+
         else:
             rays_to_sample = self.rays_to_sample
             if batch_size is not None:
