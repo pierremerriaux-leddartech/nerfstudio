@@ -254,5 +254,31 @@
         "--pipeline.datamanager.train-num-rays-per-batch=1024"
       ]
     }
+    ,
+    {
+      "name": "Python: depth-nerfacto-simplePixelSampler + mask no center",
+      "type": "python",
+      "request": "launch",
+      "program": "nerfstudio/scripts/train.py",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "env": { "CUDA_VISIBLE_DEVICES": "0" },
+      "args": [
+        "depth-nerfacto-simplePixelSampler",
+        //"--data=/home/pierre.merriaux/data/nerf/output_pandaset_1front_depth_mask_011/transforms_depth_mask.json",
+        "--data=/home/pierre.merriaux/data/nerf/output_pandaset_5front_object_static_centric_test_003/transforms.json",
+        // "--vis=wandb",
+        "--pipeline.model.depth-loss-type=URF",
+        "--pipeline.datamanager.train-num-rays-per-batch=4096",
+        "--pipeline.datamanager.images-on-gpu=True", 
+        "--pipeline.datamanager.masks-on-gpu=True",
+        "--pipeline.datamanager.dataparser.auto-scale-poses=False",
+        "--pipeline.datamanager.dataparser.center-method=none",
+        "--pipeline.datamanager.dataparser.scene-scale=2.0",
+        "--vis",
+        "viewer+tensorboard",
+
+      ]
+    }
   ]
 }

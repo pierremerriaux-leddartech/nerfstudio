@@ -53,6 +53,12 @@ class NerfstudioDataParserConfig(DataParserConfig):
     """How much to downscale images. If not set, images are chosen such that the max dimension is <1600px."""
     scene_scale: float = 1.0
     """How much to scale the region of interest by."""
+    scene_scale_x: float = 1.0
+    """How much to scale the region of interest by."""
+    scene_scale_y: float = 1.0
+    """How much to scale the region of interest by."""
+    scene_scale_z: float = 1.0
+    """How much to scale the region of interest by."""
     orientation_method: Literal["pca", "up", "vertical", "none"] = "up"
     """The method to use for orientation."""
     center_method: Literal["poses", "focus", "none"] = "poses"
@@ -256,9 +262,22 @@ class Nerfstudio(DataParser):
         # in x,y,z order
         # assumes that the scene is centered at the origin
         aabb_scale = self.config.scene_scale
+        if self.config.scene_scale_x !=1.0 or self.config.scene_scale_y!=1.0 or self.config.scene_scale_y!=1.0:
+            aabb_scale_x = self.config.scene_scale_x/2
+            aabb_scale_y = self.config.scene_scale_y/2
+            aabb_scale_z = self.config.scene_scale_z/2
+        else:
+            aabb_scale_x = aabb_scale
+            aabb_scale_y = aabb_scale
+            aabb_scale_z = aabb_scale
+            
         scene_box = SceneBox(
             aabb=torch.tensor(
-                [[-aabb_scale, -aabb_scale, -aabb_scale], [aabb_scale, aabb_scale, aabb_scale]], dtype=torch.float32
+                [[-aabb_scale_x, -aabb_scale_y, -aabb_scale_z], [aabb_scale_x, aabb_scale_y, aabb_scale_z]], dtype=torch.float32
+                #[[-4.33/2, -1.79/2, -1.65/2], [4.33/2, 1.79/2, 1.65/2]], dtype=torch.float32
+                #[[-4.74/2, -1.94/2, -1.92/2], [4.74/2, 1.94/2, 1.92/2]], dtype=torch.float32
+                #[[-1.94/2, -4.74/2, -1.92/2], [1.94/2, 4.74/2, 1.92/2]], dtype=torch.float32
+                #[[61, -58, -1.5], [65, -53, 1.5]], dtype=torch.float32
             )
         )
 
