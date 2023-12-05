@@ -541,7 +541,7 @@ class Trainer:
             group = "Eval Images"
             for image_name, image in images_dict.items():
                 writer.put_image(name=group + "/" + image_name, image=image, step=step)
-            PIERRE_SAVE_IMAGES_DEBUG = True
+            PIERRE_SAVE_IMAGES_DEBUG = False
             if PIERRE_SAVE_IMAGES_DEBUG:
                 folder_save_debug_img = "/home/pierre.merriaux/project/mars-refact/mars/mars/debug_img"
                 import os
