@@ -43,6 +43,7 @@ def eval_load_checkpoint(config: TrainerConfig, pipeline: Pipeline) -> Tuple[Pat
         A tuple of the path to the loaded checkpoint and the step at which it was saved.
     """
     assert config.load_dir is not None
+    #config.load_step = 50000 # debug Pierre
     if config.load_step is None:
         CONSOLE.print("Loading latest checkpoint from load_dir")
         # NOTE: this is specific to the checkpoint name format
@@ -54,13 +55,20 @@ def eval_load_checkpoint(config: TrainerConfig, pipeline: Pipeline) -> Tuple[Pat
                 justify="center",
             )
             sys.exit(1)
-        load_step = sorted(int(x[x.find("-") + 1 : x.find(".")]) for x in os.listdir(config.load_dir))[-1]
+        load_step = sorted(int(x[x.find("-") + 1 : x.find(".")]) for x in os.listdir(config.load_dir) if 'latents' not in x)[-1]
     else:
         load_step = config.load_step
     load_path = config.load_dir / f"step-{load_step:09d}.ckpt"
+    load_path_latents = config.load_dir / f"step-latents-{load_step:09d}.ckptlatents"
     assert load_path.exists(), f"Checkpoint {load_path} does not exist"
     loaded_state = torch.load(load_path, map_location="cpu")
     pipeline.load_pipeline(loaded_state["pipeline"], loaded_state["step"])
+    if load_path_latents.exists():
+        loaded_state_latents = torch.load(load_path_latents, map_location="cpu")
+        for k in loaded_state_latents['latents'].keys():
+            pipeline.model.object_models[k].car_latents = loaded_state_latents['latents'][k]
+        #'latents' : {k:self.pipeline.model.object_models[k].car_latents for k in self.pipeline.model.object_model_key}
+        CONSOLE.print(f":white_check_mark: Done loading latents checkpoint from {load_path_latents}")
     CONSOLE.print(f":white_check_mark: Done loading checkpoint from {load_path}")
     return load_path, load_step
 
