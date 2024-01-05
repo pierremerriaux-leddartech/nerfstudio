@@ -66,7 +66,8 @@ def eval_load_checkpoint(config: TrainerConfig, pipeline: Pipeline) -> Tuple[Pat
     if load_path_latents.exists():
         loaded_state_latents = torch.load(load_path_latents, map_location="cpu")
         for k in loaded_state_latents['latents'].keys():
-            pipeline.model.object_models[k].car_latents = loaded_state_latents['latents'][k]
+            for kk in pipeline.model.object_models[k].car_latents.keys():
+                pipeline.model.object_models[k].car_latents[kk].data = loaded_state_latents['latents'][k][kk].data
         #'latents' : {k:self.pipeline.model.object_models[k].car_latents for k in self.pipeline.model.object_model_key}
         CONSOLE.print(f":white_check_mark: Done loading latents checkpoint from {load_path_latents}")
     CONSOLE.print(f":white_check_mark: Done loading checkpoint from {load_path}")
@@ -112,6 +113,8 @@ def eval_setup(
     assert isinstance(pipeline, Pipeline)
     pipeline.eval()
 
+
+    # config.load_step = 100000 # Pierre modif to load specific test
     # load checkpointed information
     checkpoint_path, step = eval_load_checkpoint(config, pipeline)
 

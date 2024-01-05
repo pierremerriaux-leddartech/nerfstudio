@@ -319,8 +319,8 @@ class VanillaDataManagerConfig(DataManagerConfig):
 
     _target: Type = field(default_factory=lambda: VanillaDataManager)
     """Target class to instantiate."""
-    #dataparser: AnnotatedDataParserUnion = BlenderDataParserConfig()
-    dataparser: DataParserConfig = BlenderDataParserConfig() # AnnotatedDataParserUnion = BlenderDataParserConfig()
+    dataparser: AnnotatedDataParserUnion = BlenderDataParserConfig()
+    #dataparser: DataParserConfig = BlenderDataParserConfig() # AnnotatedDataParserUnion = BlenderDataParserConfig()
     """Specifies the dataparser used to unpack the data."""
     train_num_rays_per_batch: int = 1024
     """Number of rays per batch to use per training iteration."""
