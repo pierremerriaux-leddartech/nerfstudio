@@ -398,15 +398,24 @@ class Trainer:
             if load_step is None:
                 print("Loading latest Nerfstudio checkpoint from load_dir...")
                 # NOTE: this is specific to the checkpoint name format
-                load_step = sorted(int(x[x.find("-") + 1 : x.find(".")]) for x in os.listdir(load_dir))[-1]
+                load_step = sorted(int(x[x.find("-") + 1 : x.find(".")]) for x in os.listdir(load_dir) if 'latents' not in x)[-1]
             load_path: Path = load_dir / f"step-{load_step:09d}.ckpt"
+            load_path_latents = load_dir / f"step-latents-{load_step:09d}.ckptlatents"
             assert load_path.exists(), f"Checkpoint {load_path} does not exist"
             loaded_state = torch.load(load_path, map_location="cpu")
             self._start_step = loaded_state["step"] + 1
             # load the checkpoints for pipeline, optimizers, and gradient scalar
             self.pipeline.load_pipeline(loaded_state["pipeline"], loaded_state["step"])
             self.optimizers.load_optimizers(loaded_state["optimizers"])
-            self.optimizers.load_schedulers(loaded_state["schedulers"])
+            # load latents
+            if load_path_latents.exists():
+                loaded_state_latents = torch.load(load_path_latents, map_location="cpu")
+                for k in loaded_state_latents['latents'].keys():
+                    self.pipeline.model.object_models[k].car_latents = loaded_state_latents['latents'][k]
+                #'latents' : {k:self.pipeline.model.object_models[k].car_latents for k in self.pipeline.model.object_model_key}
+                CONSOLE.print(f":white_check_mark: Done loading latents checkpoint from {load_path_latents}")
+            if "schedulers" in loaded_state and self.config.load_scheduler:
+                self.optimizers.load_schedulers(loaded_state["schedulers"])
             self.grad_scaler.load_state_dict(loaded_state["scalers"])
             CONSOLE.print(f"Done loading Nerfstudio checkpoint from {load_path}")
         elif load_checkpoint is not None:
@@ -416,6 +425,8 @@ class Trainer:
             # load the checkpoints for pipeline, optimizers, and gradient scalar
             self.pipeline.load_pipeline(loaded_state["pipeline"], loaded_state["step"])
             self.optimizers.load_optimizers(loaded_state["optimizers"])
+            if "schedulers" in loaded_state and self.config.load_scheduler:
+                self.optimizers.load_schedulers(loaded_state["schedulers"])
             self.grad_scaler.load_state_dict(loaded_state["scalers"])
             CONSOLE.print(f"Done loading Nerfstudio checkpoint from {load_checkpoint}")
         else:
@@ -444,6 +455,13 @@ class Trainer:
                 "scalers": self.grad_scaler.state_dict(),
             },
             ckpt_path,
+        )
+        ckpt_latents_path: Path = self.checkpoint_dir / f"step-latents-{step:09d}.ckptlatents"
+        torch.save(
+            {
+            'latents' : {k:self.pipeline.model.object_models[k].car_latents for k in self.pipeline.model.object_model_key}
+            },
+            ckpt_latents_path
         )
         # possibly delete old checkpoints
         if self.config.save_only_latest_checkpoint:
