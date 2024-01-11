@@ -279,6 +279,61 @@
         "viewer+tensorboard",
 
       ]
+    },
+    {
+      "name": "Python: instant-ngp",
+      "type": "python",
+      "request": "launch",
+      "program": "nerfstudio/scripts/train.py",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "env": { "CUDA_VISIBLE_DEVICES": "0" },
+      "args": [
+        "instant-ngp",
+        //"--data=/home/pierre.merriaux/data/nerf/output_pandaset_1front_depth_mask_011/transforms_depth_mask.json",
+        "--data=/home/pierre.merriaux/data/nerf/output_pandaset_5front_object_static_centric_test_003/transforms.json",
+        // "--vis=wandb",
+        "--pipeline.datamanager.train-num-rays-per-batch=4096",
+        "--pipeline.datamanager.images-on-gpu=True", 
+        "--pipeline.datamanager.masks-on-gpu=True",
+        "--pipeline.datamanager.dataparser.auto-scale-poses=False",
+        "--pipeline.datamanager.dataparser.center-method=none",
+        "--pipeline.datamanager.dataparser.scene-scale=2.0",
+        "--vis",
+        "viewer+tensorboard",
+
+      ]
+    },
+    {
+      "name": "Python: viewer",
+      "type": "python",
+      "request": "launch",
+      "program": "nerfstudio/scripts/viewer/run_viewer.py",
+      // "cwd": "/home/pierre.merriaux/data/nerf",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "env": { "CUDA_VISIBLE_DEVICES": "0" },
+      "args": [
+        "--load-config=/home/pierre.merriaux/data/nerf/outputs/output_pandaset_5front_depth_mask_048/depth-nerfacto-simplePixelSampler/2023-10-19_154021/config.yml",
+        "--viewer.websocket-port=7008",
+       
+
+      ]
+    },
+    {
+      "name": "Python: render",
+      "type": "python",
+      "request": "launch",
+      "program": "nerfstudio/scripts/render.py",
+      // "cwd": "/home/pierre.merriaux/data/nerf",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "env": { "CUDA_VISIBLE_DEVICES": "0" },
+      "args": [
+        "interpolate",
+        "--load-config=/home/pierre.merriaux/data/nerf/outputs/output_pandaset_5front_depth_mask_048/depth-nerfacto-simplePixelSampler/2023-10-19_154021/config.yml",
+        "--output-format=images",
+      ]
     }
   ]
 }
